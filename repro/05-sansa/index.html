@@ -70,6 +70,19 @@ body.in .hud{opacity:1}
 #ctx{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(152px + env(safe-area-inset-bottom));pointer-events:auto;display:none;cursor:pointer;font:19px/1 var(--kai);letter-spacing:.3em;padding:13px 18px 13px 24px;color:#f8e3b0;border:1px solid #e0b866;background:linear-gradient(180deg,#9c241ce8,#520c09e8);border-radius:26px;box-shadow:0 0 0 3px #1a0d0799,0 6px 20px #000a;animation:ctx 1.6s ease-in-out infinite}
 @keyframes ctx{50%{box-shadow:0 0 0 3px #1a0d0799,0 0 18px 4px #ffc86a88}}
 #tie .poem{font:1.25em/1.5 var(--kai);color:#5a1208;margin:0 4px}
+#wish{position:fixed;inset:0;z-index:15;display:grid;place-items:center;background:#040201c0;opacity:0;visibility:hidden;transition:opacity .5s,visibility .5s;backdrop-filter:blur(3px)}
+#wish.show{opacity:1;visibility:visible}
+#wbox{width:min(94vw,640px);max-height:min(84vh,640px);display:flex;flex-direction:column;gap:10px;padding:16px 14px 14px;background:linear-gradient(160deg,#6b4526,#4a2c16);border:1px solid #2a1608;box-shadow:0 0 0 5px #7a1410,0 0 0 7px #d9b25e,0 30px 80px #000;color:#f3dba0}
+#wbox h3{margin:0;text-align:center;font:400 28px/1.2 var(--kai);letter-spacing:.4em;margin-right:-.4em;color:#f6dfae}
+#wform{display:flex;gap:8px}
+#win{flex:1;min-width:0;font:16px/1.4 var(--song);padding:10px 12px;border:1px solid #c79b4e;background:#f3e2bc;color:#3b1408;border-radius:2px;user-select:text;-webkit-user-select:text;outline:none}
+#wadd,#wclose{cursor:pointer;border:1px solid #c79b4e;background:linear-gradient(180deg,#8f1d17,#4d0b08);color:#f8e3b0;font:17px/1 var(--kai);letter-spacing:.3em;padding:11px 12px 11px 18px;border-radius:2px;white-space:nowrap}
+#wclose{align-self:center;padding:10px 26px 10px 32px}
+#wlist{flex:1;min-height:120px;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:8px;padding:2px}
+.wp{position:relative;background:linear-gradient(160deg,#e9cf98,#cfa765);border:1px solid #8a6232;border-radius:3px;padding:16px 10px 8px;color:#3b1408;font:14px/1.6 var(--song)}
+.wp:before{content:"";position:absolute;left:50%;top:5px;width:7px;height:7px;margin-left:-4px;border-radius:50%;background:#3a2410}
+.wp p{margin:0 0 6px;word-break:break-all}.wp i{display:block;font:normal 11px/1.4 var(--song);color:#7a4a20}
+.wp.me{border:2px solid #c8201a;box-shadow:0 0 10px #ffb84a66}.wp b{position:absolute;right:4px;top:2px;font:normal 11px/1.6 var(--song);color:#a3201a;cursor:pointer;padding:2px 4px}
 </style>
 </head>
 <body>
@@ -85,6 +98,7 @@ body.in .hud{opacity:1}
 </div>
 <div id="rite"></div><div id="toast"></div>
 <div id="card"><div id="tie"><div class="body" id="tiebody"></div><div class="stamp">桃园<br>结义</div><button id="tieok">收下此帖</button></div></div>
+<div id="wish"><div id="wbox"><h3>许愿架</h3><div id="wform"><input id="win" maxlength="40" placeholder="写下一句心愿（40字以内）" autocomplete="off" enterkeyhint="done"><button id="wadd">挂上</button></div><div id="wlist"></div><button id="wclose">返回</button></div></div>
 <div id="gate">
  <h2>忠义千秋 · 在线参拜</h2><h1>关帝庙</h1><div class="rule"></div>
  <p>阁下此来，名号<b id="gname"></b><span id="gttl"></span></p>
@@ -525,7 +539,7 @@ function buildProps(){
  for(const s of[-1,1]){const g=new THREE.Group();g.position.set(s*.72,1.21,-.05);al.add(g);add(g,lathe([[0,0],[.12,0],[.11,.02],[.035,.05],[.035,.13],[.2,.17],[.21,.19],[0,.19]],24),MAT.bronze);
   for(const[x,y,z]of[[.09,0,0],[-.045,0,.078],[-.045,0,-.078],[0,.115,0]])add(g,pg,pmat,x,.255+y,z).rotation.y=rnd()*6;}
  // 三爵
- for(let i=-1;i<=1;i++){const g=new THREE.Group();g.position.set(i*.26,1.21,.4);al.add(g);const c=add(g,lathe([[0,.1],[.035,.1],[.05,.16],[.055,.2],[.05,.2],[.03,.11],[0,.11]],16),MAT.bronze);c.scale.set(1,1,1.6);for(let k=0;k<3;k++){const a=k*2.094;add(g,new THREE.ConeGeometry(.009,.12,6),MAT.bronze,Math.cos(a)*.035,.05,Math.sin(a)*.05).rotation.set(Math.sin(a)*.25,0,-Math.cos(a)*.25+Math.PI);}}
+ for(let i=-1;i<=1;i++){const g=new THREE.Group();g.position.set(i*.26,1.21,.4);al.add(g);const c=add(g,lathe([[0,.1],[.035,.1],[.05,.16],[.055,.2],[.05,.2],[.03,.11],[0,.11]],16),MAT.bronze);c.scale.set(1,1,1.6);{const wv=new THREE.Mesh(new THREE.CircleGeometry(.04,12),Std({color:0x7a3008,roughness:.12,metalness:.3,emissive:0x351204,emissiveIntensity:.6}));wv.rotation.x=-Math.PI/2;wv.position.y=.125;wv.scale.set(.45,.72,1);wv.visible=false;g.add(wv);wineCups.push(wv);}for(let k=0;k<3;k++){const a=k*2.094;add(g,new THREE.ConeGeometry(.009,.12,6),MAT.bronze,Math.cos(a)*.035,.05,Math.sin(a)*.05).rotation.set(Math.sin(a)*.25,0,-Math.cos(a)*.25+Math.PI);}}
  // 汉寿亭侯印
  {const g=new THREE.Group();g.position.set(1.02,1.21,.32);g.rotation.y=-.3;al.add(g);add(g,new THREE.BoxGeometry(.3,.04,.3),MAT.red,0,.02,0);add(g,new THREE.BoxGeometry(.14,.08,.14),MAT.gold,0,.08,0);add(g,new THREE.SphereGeometry(.05,12,8),MAT.gold,0,.13,0).scale.set(1,.6,1.3);add(g,new THREE.SphereGeometry(.02,8,6),MAT.gold,0,.14,.07);}
  // 春秋（展开的竹简）
@@ -858,9 +872,9 @@ function updateCamera(dt,t){
  let dd=1.6;for(let s=.6;s<=tp.dist+.01;s+=.15){{const px=hx+dx*s,py=hy+dy*s,pz=hz+dz*s;if(!freePt(px,py,pz))break;if(py<6.5&&s>2.4&&OBS.some(o=>{const ex=px-o[0],ez=pz-o[1];return ex*ex+ez*ez<(o[2]+.8)*(o[2]+.8);}))break;}if(((hz+dz*s>11.7)!==(hz>11.7))&&Math.abs(hz-11.7)>3.2)break;dd=Math.max(1.6,s);}
  tp.cd=dd<tp.cd?dd:tp.cd+(dd-tp.cd)*(1-Math.exp(-dt*4));
  _cp.set(hx+dx*tp.cd,hy+dy*tp.cd,hz+dz*tp.cd);_cl.set(hx,hy+.3,hz);
- tp.gz+=((tp.gaze?1:0)-tp.gz)*(1-Math.exp(-dt*2.2));
+ if(tp.cine)tp.G=tp.cine;else if(tp.gaze)tp.G=GZ();tp.gz+=(((tp.gaze||tp.cine)?1:0)-tp.gz)*(1-Math.exp(-dt*2.2));
  let f=port()?66:55;
- if(tp.gz>.002){const G=GZ(),e=tp.gz*tp.gz*(3-2*tp.gz);_cp.lerp(_gp.set(G.p[0],G.p[1],G.p[2]),e);_cl.lerp(_gl.set(G.l[0],G.l[1],G.l[2]),e);f+=(G.f-f)*e;}
+ if(tp.gz>.002){const G=tp.G||GZ(),e=tp.gz*tp.gz*(3-2*tp.gz);_cp.lerp(_gp.set(G.p[0],G.p[1],G.p[2]),e);_cl.lerp(_gl.set(G.l[0],G.l[1],G.l[2]),e);f+=(G.f-f)*e;}
  camera.position.copy(_cp);camera.lookAt(_cl);if(Math.abs(camera.fov-f)>.01){camera.fov=f;camera.updateProjectionMatrix();}
  tp.k=Math.max(sstep(13,9.6,camera.position.z),sstep(13.2,10.8,hero.z));
 }
@@ -892,7 +906,7 @@ function sAmbient(B,t){const c=B.ctx,s=c.createBufferSource();s.buffer=B.brown;s
 let AB=null,sndOn=true;
 
 const play=(fn,...a)=>{if(!AB||!sndOn)return;if(AB.ctx.state==='suspended')AB.ctx.resume();fn(AB,AB.ctx.currentTime+.02,...a);};
-window.__audioTest=async()=>{const res={};const cases={bell:[9,B=>sBell(B,.05)],drum:[2.5,B=>sDrum(B,.05)],qing:[5,B=>sQing(B,.05)],ambient:[8,B=>sAmbient(B,0)],yard:[8,B=>{sWind(B,0);sBirds(B,0,8,1);sChime(B,2,.8);}],music:[12,B=>{sMusic(B,0,12,5);}],rattle:[3.5,B=>sRattle(B,.05,2.4)],worst:[6,B=>{sWind(B,0);sBirds(B,0,6,2);sMusic(B,0,6,9);sRattle(B,.5,2);sAmbient(B,0);sBell(B,.5);sBell(B,1.2);for(let i=0;i<8;i++)sDrum(B,.5+i*.22);sQing(B,.6);sQing(B,.9,440);}]};
+window.__audioTest=async()=>{const res={};const cases={bell:[9,B=>sBell(B,.05)],drum:[2.5,B=>sDrum(B,.05)],qing:[5,B=>sQing(B,.05)],ambient:[8,B=>sAmbient(B,0)],yard:[8,B=>{sWind(B,0);sBirds(B,0,8,1);sChime(B,2,.8);}],music:[12,B=>{sMusic(B,0,12,5);}],rattle:[3.5,B=>sRattle(B,.05,2.4)],pour:[2.4,B=>{sPour(B,.05,1.5);sDing(B,1.8);}],clack:[1,B=>{sClack(B,.05,1);sClack(B,.2,.6);sClack(B,.3,.4);}],worst:[6,B=>{sWind(B,0);sBirds(B,0,6,2);sMusic(B,0,6,9);sRattle(B,.5,2);sAmbient(B,0);sBell(B,.5);sBell(B,1.2);for(let i=0;i<8;i++)sDrum(B,.5+i*.22);sQing(B,.6);sQing(B,.9,440);}]};
  for(const k in cases){const[dur,fn]=cases[k],sr=44100,oc=new OfflineAudioContext(2,sr*dur,sr),B=mkBus(oc);fn(B);const buf=await oc.startRendering(),d=buf.getChannelData(0);let peak=0,sq=0,clip=0,first=-1,run=0,maxRun=0,nan=0,dc=0;
   for(let i=0;i<d.length;i++){const a=Math.abs(d[i]);if(!isFinite(a)){nan++;continue;}if(a>peak)peak=a;sq+=a*a;dc+=d[i];if(a>=.999)clip++;if(first<0&&a>1e-3)first=i/sr;if(i<d.length*.6){if(a<1e-4){run++;if(run>maxRun)maxRun=run;}else run=0;}}
   res[k]={dur,peak:+peak.toFixed(3),rms:+Math.sqrt(sq/d.length).toFixed(4),clipped:clip,firstSound:+first.toFixed(3),longestSilenceSec:+(maxRun/sr).toFixed(3),nan,dc:+(dc/d.length).toFixed(5)};}
@@ -949,7 +963,7 @@ const QIAN=[
 ['上吉','单骑救主','百万军中藏阿斗|青釭剑下血衣红|但凭一点忠诚在|绝处逢生路自通','赵云怀抱阿斗，杀出重围。','危难之中守住本心，自有转机。']];
 
 /* ---------- 仪轨 ---------- */
-const st={incense:0,bows:0,rites:0,jieyi:false,entered:false,lock:false,mode:null,laps:0,bros:null,qian:0};
+const st={incense:0,bows:0,rites:0,jieyi:false,entered:false,lock:false,mode:null,laps:0,bros:null,qian:0,jf:0,wine:0};
 const HINT0=MOBILE?'点地面行走 · 拖动环视 · 双指缩放':'点地面或 WASD 行走 · 拖动环视 · 滚轮缩放';
 const hint=s=>{$('#hint').textContent=s||HINT0;};
 let toastT=0;const toast=(s,ms=3200)=>{const e=$('#toast');e.textContent=s;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),ms);};
@@ -960,12 +974,12 @@ const GO=async(c,k,x,z,sp)=>{if(!await walkTo(c,x,z,k,sp))throw 0;};
 const distH=c=>Math.hypot(c.x-hero.x,c.z-hero.z),angTo=(a,b)=>Math.atan2(b.x-a.x,b.z-a.z);
 const volAt=c=>Math.max(0,Math.min(1,1.12-distH(c)/40));
 let curSpot=null;
-const SPOTS=[{id:'bell',x:-11.5,z:26,r:5.2,label:'敲钟'},{id:'drum',x:11.5,z:26,r:5.2,label:'擂鼓'},{id:'circle',x:HORSE.x,z:HORSE.z,r:7.5,label:'绕赤兔马',on:'停止绕行'},{id:'sit',x:PEACH.x,z:PEACH.z,r:5.5,label:'桃树下坐一坐',on:'起身'}];
+const SPOTS=[{id:'bell',x:-11.5,z:26,r:5.2,label:'敲钟'},{id:'drum',x:11.5,z:26,r:5.2,label:'擂鼓'},{id:'circle',x:HORSE.x,z:HORSE.z,r:7.5,label:'绕赤兔马',on:'停止绕行'},{id:'sit',x:PEACH.x,z:PEACH.z,r:5.5,label:'桃树下坐一坐',on:'起身'},{id:'jiao',x:0,z:4.3,r:5.4,label:'掷筊问事',on:'再掷一次'},{id:'wine',x:0,z:-1.2,r:2.7,label:'敬酒'},{id:'wish',x:-8.6,z:32,r:4.2,label:'许愿牌'}];
 function refreshCtx(force){let best=null,bd=1e9;if(!st.lock)for(const s of SPOTS){const d=Math.hypot(hero.x-s.x,hero.z-s.z);if(d<s.r&&d<bd){best=s;bd=d;}}
  if(best!==curSpot||force){curSpot=best;const e=$('#ctx');if(best){e.style.display='block';e.textContent=(st.mode===best.id&&best.on)?best.on:best.label;}else e.style.display='none';}}
 function setMode(m){st.mode=m;$('#a-bow').classList.toggle('on',m==='kneel');$('#a-bow em').textContent=m==='kneel'?'停下':'跪拜';for(const id of['incense','qian'])$('#a-'+id).classList.toggle('on',m===id);refreshCtx(true);}
 function setGaze(on){if(on&&hero.z>11.6){toast('神像在殿内 · 请先入殿');return;}tp.gaze=on;$('#bgaze').textContent=on?'退后':'瞻仰';}
-function stopHero(){cancel(hero);setMode(null);}
+function stopHero(){cancel(hero);setMode(null);tp.cine=null;jiaoHide();wineReset();}
 function begin(m){if(st.lock||!st.entered)return-1;stopHero();if(tp.gaze)setGaze(false);setMode(m);return hero.tok;}
 const run=(fn,k)=>fn().catch(e=>{if(e!==0&&e!==1)console.error(e);if(k!=null&&hero.tok===k){cancel(hero);setMode(null);hint();}});
 function takeCushion(c){const f=CU.filter(u=>!u.by);if(!f.length)return null;let u;if(c.hero){f.sort((a,b)=>Math.hypot(a.x-c.x,a.z-c.z)-Math.hypot(b.x-c.x,b.z-c.z));u=f[0];}else u=pick(f);u.by=c;c.cu=u;return u;}
@@ -1006,12 +1020,6 @@ function actIncense(){const k=begin('incense');if(k<0)return;run(async()=>{const
  if(inn){for(let i=0;i<3;i++){const s=userSticks[grp*3+i];s.g.visible=true;s.tip.material.color.setRGB(3.5,1.1,.25);const h=s.home;tw(.7,q=>{s.g.position.set(h.x,h.y+(1-q)*.5,h.z);},eout);const m=L.userSmoke[i];tw(2.5,q=>{m.uniforms.op.value=Math.max(m.uniforms.op.value,q*.95);});}tw(2,q=>{burner.userData.glow.material.opacity=.25+.35*Math.sin(q*Math.PI);});}
  else for(let i=0;i<3;i++)yardSticks[grp*3+i].visible=true;
  st.incense+=3;rite('上香','清香三炷 · 忠义千秋');toast(`${me.full} 敬香三炷 · 香火共 ${st.incense} 炷`);await WT(hero,k,1.4);setMode(null);hint();},k);}
-function actQian(){const k=begin('qian');if(k<0)return;run(async()=>{const cu=takeCushion(hero);if(!cu){toast('蒲团已满 · 请稍候片刻');throw 1;}
- hint('前往殿内蒲团求签……');await GO(hero,k,cu.x,cu.z);hero.hT=Math.PI;hero.t.kneel=1;await WT(hero,k,.8);hint('诚心默念所求之事……');hero.tube.visible=true;hero.t.arms=1;await WT(hero,k,.7);
- hero.t.shake=1;play(sRattle,2.4);await WT(hero,k,2.7);hero.t.shake=0;await WT(hero,k,.6);
- const i=Math.floor(Math.random()*QIAN.length),q=QIAN[i];st.qian++;play(sQing,q[0][0]==='上'?784:q[0][0]==='中'?587:392,.6);
- await showCard(`<h3>第${CN(i+1)}签 · ${q[0]}</h3><p class="who">【${q[1]}】</p>`+q[2].split('|').map(l=>`<p class="poem">${l}</p>`).join('')+`<p>典故：${q[3]}</p><p>解曰：${q[4]}</p>`,'关帝<br>灵签','收签');
- if(hero.tok===k){stopHero();hint();}},k);}
 function respond(n){if(n.resp||n.summoned||!n.calm||n.c.kneel>.2||n.c.sit>.2)return false;n.resp=true;(async()=>{n.hold=true;n.hT=angTo(n,hero);await wait(.55);n.t.arms=1;n.t.bow=.6;toast(`${n.name.full} 向你回礼`);await wait(1.5);n.t.arms=0;n.t.bow=0;await wait(.4);n.hold=false;n.hT=null;n.resp=false;})();return true;}
 function actSalute(){if(st.lock||!st.entered)return;if(st.mode)stopHero();if(tp.gaze)setGaze(false);if(hero.res)cancel(hero);const k=hero.tok;
  const near=npcs.filter(n=>distH(n)<7).sort((a,b)=>distH(a)-distH(b));if(near.length)hero.hT=angTo(hero,near[0]);
@@ -1021,13 +1029,129 @@ async function strikeBell(v=1){if(bellBusy)return;bellBusy=true;const p=bell.piv
  if(v>.04)play(sBell,v);bell.hitT=performance.now()/1000;await tw(.5,q=>{p.rotation.x=.035-.1*Math.sin(q*Math.PI)*(1-q);});p.rotation.x=0;bellBusy=false;}
 function strikeDrum(v=1){const s=drum.sticks[drumN++%2];tw(.085,q=>{s.rotation.x=.12-.62*q;},q=>q*q).then(()=>{if(v>.04)play(sDrum,v*(.85+Math.random()*.3));drum.hitT=performance.now()/1000;tw(.3,q=>{s.rotation.x=-.5+.62*q;},eout);});}
 const QUOTES=['「不求同年同月同日生，只愿同年同月同日死。」','「玉可碎而不可改其白，竹可焚而不可毁其节。」','「吾弟兄三人，自桃园结义，誓同生死。」','春风拂面，落英缤纷，且坐片刻。'];
-function actCtx(){const s=curSpot;if(!s||st.lock)return;
+function actCtx(){const s=curSpot;if(!s||st.lock)return;if(s.id==='jiao')return actJiao();if(s.id==='wine')return actWine();if(s.id==='wish')return actWish();
  if(s.id==='bell'){const k=begin('bell');if(k<0)return;run(async()=>{await GO(hero,k,-9.5,26.75);hero.hT=Math.PI;hint('晨钟一响 · 声闻于天');hero.t.arms=1;await WT(hero,k,.3);strikeBell(1);await WT(hero,k,.6);hero.t.arms=0;setMode(null);},k);}
  else if(s.id==='drum'){const k=begin('drum');if(k<0)return;run(async()=>{await GO(hero,k,9.55,26.1);hero.hT=1.76;hint('战鼓雷鸣 · 威震华夏');hero.t.arms=1;await WT(hero,k,.16);strikeDrum(1);await WT(hero,k,.25);hero.t.arms=0;setMode(null);},k);}
  else if(s.id==='circle'){if(st.mode==='circle'){stopHero();hint();return;}const k=begin('circle');if(k<0)return;run(async()=>{const RR=3.9;let a=Math.atan2(hero.x-HORSE.x,hero.z-HORSE.z),acc=0;hint('绕赤兔马而行 · 再点停止');
   await GO(hero,k,HORSE.x+Math.sin(a)*RR,HORSE.z+Math.cos(a)*RR);for(;;){a-=.35;acc+=.35;await GO(hero,k,HORSE.x+Math.sin(a)*RR,HORSE.z+Math.cos(a)*RR,2.1);if(acc>=6.283){acc-=6.283;st.laps++;play(sQing,660,.35);toast(st.laps%3===0?'绕马三匝 · 马到功成':`绕赤兔马 · 第 ${st.laps} 匝`);}}},k);}
  else if(s.id==='sit'){if(st.mode==='sit'){stopHero();hint();return;}const k=begin('sit');if(k<0)return;run(async()=>{const f=SEATS.filter(x=>!x.by).sort((a,b)=>Math.hypot(a.x-hero.x,a.z-hero.z)-Math.hypot(b.x-hero.x,b.z-hero.z))[0];if(!f){toast('石凳已满');throw 1;}
   f.by=hero;hero.seat=f;await GO(hero,k,f.x,f.z);hero.hT=Math.atan2(PEACH.x-f.x,PEACH.z-f.z);hero.t.sit=1;hint('桃园小坐 · 再点「起身」');let i=0;for(;;){await WT(hero,k,i?14:5);toast(QUOTES[i++%QUOTES.length],5000);}},k);}}
+
+/* ---------- 掷筊 / 敬酒 / 许愿牌 ---------- */
+const JG={},jiao=[];let jiaoPlay=null;const wineCups=[];let pot=null,stream=null;const POT0=[.52,1.21,-1.76];
+const JX={'圣杯':'一阴一阳 · 神明应允','笑杯':'两面皆阳 · 神明含笑，所问未明','阴杯':'两面皆阴 · 神明未允'};
+const cine=(p,l,f)=>({p,l,f:port()?f*1.45:f});
+function buildJiao(){const nu=14,nv=6,P=[],C=[],I=[],Rc=.26,w0=.062,hm=.052;
+ const pt=(u,v,top)=>{const a=u*.72,wd=w0*Math.sqrt(Math.max(0,1-u*u*.92)),s=(2*v-1)*wd,rad=Rc+s;return[Math.sin(a)*rad,top?hm*Math.pow(Math.max(0,1-u*u),.6)*Math.sqrt(Math.max(0,1-(2*v-1)*(2*v-1))):0,Math.cos(a)*rad-Rc];};
+ for(const top of[1,0]){const b=P.length/3;for(let i=0;i<=nu;i++)for(let j=0;j<=nv;j++){const p=pt(i/nu*2-1,j/nv,top);P.push(p[0],p[1],p[2]);if(top)C.push(.42,.05,.03);else C.push(.82,.6,.34);}
+  for(let i=0;i<nu;i++)for(let j=0;j<nv;j++){const a=b+i*(nv+1)+j,c=a+nv+1;I.push(a,a+1,c,a+1,c+1,c);}}
+ let cx=0,cy=0,cz=0;const n=P.length/3;for(let i=0;i<n;i++){cx+=P[i*3];cy+=P[i*3+1];cz+=P[i*3+2];}cx/=n;cy/=n;cz/=n;for(let i=0;i<n;i++){P[i*3]-=cx;P[i*3+1]-=cy;P[i*3+2]-=cz;}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeVertexNormals();
+ JG.cp=[];for(const u of[-1,-.5,0,.5,1])for(const v of[0,1]){const p=pt(u,v,0);JG.cp.push(V3(p[0]-cx,p[1]-cy,p[2]-cz));}
+ for(const u of[-.55,0,.55])for(const top of[0,1]){const p=pt(u,.5,top);JG.cp.push(V3(p[0]-cx,p[1]-cy,p[2]-cz));}
+ const m=Std({vertexColors:true,roughness:.42,metalness:0,side:THREE.DoubleSide,envMapIntensity:.6});
+ for(let i=0;i<2;i++){const o=new THREE.Mesh(g,m);o.visible=false;o.receiveShadow=true;scene.add(o);jiao.push(o);}}
+function simJiao(ox,oz){
+ const B=[0,1].map(i=>({p:V3(ox+(i?.13:-.13),.62,oz),v:V3((i?1:-1)*R(.25,.7),R(2.7,3.5),-R(.5,1.0)),q:new THREE.Quaternion().setFromEuler(new THREE.Euler(R(0,6.28),R(0,6.28),R(0,6.28))),w:V3(R(-11,11),R(-5,5),R(-11,11)),sl:0}));
+ const dt=1/240,Ii=[12/(.06*.06+.12*.12),12/(.34*.34+.12*.12),12/(.34*.34+.06*.06)],fr=[],ev=[],r=V3(),vp=V3(),t1=V3(),t2=V3(),qi=new THREE.Quaternion(),dq=new THREE.Quaternion();
+ const aI=(b,v)=>{qi.copy(b.q).invert();v.applyQuaternion(qi);v.x*=Ii[0];v.y*=Ii[1];v.z*=Ii[2];return v.applyQuaternion(b.q);};
+ for(let step=0;step<240*6;step++){let all=true;
+  for(const b of B){if(b.sl>=.35)continue;all=false;
+   b.v.y-=9.8*dt;b.p.addScaledVector(b.v,dt);dq.set(b.w.x*dt*.5,b.w.y*dt*.5,b.w.z*dt*.5,0).multiply(b.q);b.q.x+=dq.x;b.q.y+=dq.y;b.q.z+=dq.z;b.q.w+=dq.w;b.q.normalize();
+   let pen=0;
+   for(const c of JG.cp){r.copy(c).applyQuaternion(b.q);const y=b.p.y+r.y;if(y>=0)continue;if(-y>pen)pen=-y;
+    vp.copy(b.w).cross(r).add(b.v);const vn=vp.y;if(vn>=0)continue;
+    t2.copy(r).cross(t1.set(0,1,0));aI(b,t2);t2.cross(r);const jn=-(1+(vn<-.6?.36:0))*vn/(1+t2.y);
+    b.v.y+=jn;t2.copy(r).cross(t1.set(0,jn,0));aI(b,t2);b.w.add(t2);
+    if(vn<-.8&&(!ev.length||step*dt-ev[ev.length-1][0]>.035))ev.push([step*dt,Math.min(1,-vn/3.5)]);
+    vp.copy(b.w).cross(r).add(b.v);vp.y=0;const vt=vp.length();if(vt>1e-4){t1.copy(vp).multiplyScalar(1/vt);t2.copy(r).cross(t1);aI(b,t2);t2.cross(r);const jt=Math.min(vt/(1+t2.dot(t1)),.55*jn);
+     b.v.addScaledVector(t1,-jt);t2.copy(r).cross(t1).multiplyScalar(-jt);aI(b,t2);b.w.add(t2);}}
+   if(pen>0){b.p.y+=pen*.6;b.w.multiplyScalar(.99);b.v.x*=.995;b.v.z*=.995;}else b.w.multiplyScalar(.9988);
+   if(b.v.lengthSq()<.006&&b.w.lengthSq()<.4&&b.p.y<.12)b.sl+=dt;else b.sl=0;}
+  if(step%2===0)for(const b of B)fr.push(b.p.x,b.p.y,b.p.z,b.q.x,b.q.y,b.q.z,b.q.w);
+  if(all)break;}
+ const res=B.map(b=>r.set(0,1,0).applyQuaternion(b.q).y);
+ return{fr:new Float32Array(fr),n:fr.length/14,res,ev,ok:res.every(y=>Math.abs(y)>.6)&&B.every(b=>b.sl>=.35&&isFinite(b.p.x)),cls:(res[0]>0)!==(res[1]>0)?'圣杯':res[0]<0?'笑杯':'阴杯'};}
+function jiaoSet(J,f){for(let i=0;i<2;i++){const o=(f*2+i)*7;jiao[i].visible=true;jiao[i].position.set(J.fr[o],J.fr[o+1]+.004,J.fr[o+2]);jiao[i].quaternion.set(J.fr[o+3],J.fr[o+4],J.fr[o+5],J.fr[o+6]);}}
+function jiaoTick(dt){const J=jiaoPlay;if(!J)return;J.t+=dt;const f=Math.min(J.n-1,Math.floor(J.t*120));jiaoSet(J,f);while(J.ei<J.ev.length&&J.ev[J.ei][0]<=J.t){play(sClack,J.ev[J.ei][1]);J.ei++;}if(f>=J.n-1){jiaoPlay=null;J.done();}}
+function jiaoHide(){for(const o of jiao)o.visible=false;if(jiaoPlay){const J=jiaoPlay;jiaoPlay=null;J.done();}}
+async function throwJiao(k,want){const ox=hero.x,oz=hero.z-.5,target=want||qs.get('jf')||(Math.random()<.5?'圣杯':Math.random()<.5?'笑杯':'阴杯');let S=null;
+ for(let i=0;i<40;i++){const s=simJiao(ox,oz);if(!s.ok)continue;S=s;if(s.cls===target)break;}
+ if(!S)S=simJiao(ox,oz);
+ tp.cine=cine([ox+1.5,2.0,oz+1.7],[ox,.15,oz-.55],38);jiaoSet(S,0);hero.t.arms=1;await WT(hero,k,.8);hero.t.arms=.2;
+ await new Promise(r=>{jiaoPlay=Object.assign(S,{t:0,ei:0,done:r});});if(hero.tok!==k)throw 0;hero.t.arms=0;await WT(hero,k,.45);return S.cls;}
+function actJiao(){const k=begin('jiao');if(k<0)return;run(async()=>{const cu=takeCushion(hero);if(!cu){toast('蒲团已满 · 请稍候片刻');throw 1;}
+ hint('前往殿内蒲团……');await GO(hero,k,cu.x,cu.z);hero.hT=Math.PI;hero.t.kneel=1;await WT(hero,k,.8);hint('心中默念所问之事 · 掷筊请示');await WT(hero,k,.6);
+ const c=await throwJiao(k,st.jf>=2?'圣杯':null);st.jf=c==='圣杯'?0:st.jf+1;rite(c,JX[c]);play(sQing,c==='圣杯'?784:c==='笑杯'?587:440,.5);
+ toast(c==='圣杯'?'圣杯 · 所问之事，神明应允':c==='笑杯'?'笑杯 · 所问未明，可再诚心请示':'阴杯 · 神明未允，宜再思量');await WT(hero,k,3);tp.cine=null;hint('可「再掷一次」，或点地面起身');},k);}
+function actQian(){const k=begin('qian');if(k<0)return;run(async()=>{const cu=takeCushion(hero);if(!cu){toast('蒲团已满 · 请稍候片刻');throw 1;}
+ hint('前往殿内蒲团求签……');await GO(hero,k,cu.x,cu.z);hero.hT=Math.PI;hero.t.kneel=1;await WT(hero,k,.8);
+ for(let fails=0;;){hint('诚心默念所求之事……');hero.tube.visible=true;hero.t.arms=1;await WT(hero,k,.7);
+  hero.t.shake=1;play(sRattle,2.4);await WT(hero,k,2.7);hero.t.shake=0;await WT(hero,k,.5);hero.tube.visible=false;hero.t.arms=0;
+  const i=Math.floor(Math.random()*QIAN.length),q=QIAN[i];rite(`第${CN(i+1)}签`,'掷筊请示 · 圣杯方准');play(sQing,587,.4);hint('已得一签 · 掷筊请关圣示下');await WT(hero,k,1.7);
+  const c=await throwJiao(k,fails>=2?'圣杯':null);rite(c,JX[c]);
+  if(c==='圣杯'){st.qian++;play(sQing,784,.6);await WT(hero,k,2.2);tp.cine=null;
+   await showCard(`<h3>第${CN(i+1)}签 · ${q[0]}</h3><p class="who">【${q[1]}】</p>`+q[2].split('|').map(l=>`<p class="poem">${l}</p>`).join('')+`<p>典故：${q[3]}</p><p>解曰：${q[4]}</p>`,'关帝<br>灵签','收签');break;}
+  fails++;play(sQing,392,.4);toast(`${c} · 神明未允此签，重新求签（第 ${fails} 次不准）`,4200);await WT(hero,k,2.8);tp.cine=null;for(const o of jiao)o.visible=false;await WT(hero,k,.6);}
+ if(hero.tok===k){stopHero();hint();}},k);}
+// 敬酒
+function buildWine(){pot=new THREE.Group();pot.position.set(POT0[0],POT0[1],POT0[2]);scene.add(pot);
+ const b=new THREE.Mesh(lathe([[0,0],[.06,0],[.065,.02],[.05,.04],[.085,.1],[.09,.15],[.06,.2],[.045,.23],[.055,.26],[0,.26]],18),MAT.bronze);pot.add(b);
+ const sp=new THREE.Mesh(new THREE.CylinderGeometry(.012,.02,.13,8),MAT.bronze);sp.position.set(-.11,.17,0);sp.rotation.z=.9;pot.add(sp);
+ const h=new THREE.Mesh(new THREE.TorusGeometry(.05,.011,6,14,3.4),MAT.bronze);h.position.set(.09,.14,0);h.rotation.z=-1.7;pot.add(h);
+ stream=new THREE.Mesh(new THREE.CylinderGeometry(.006,.009,1,6),new THREE.MeshBasicMaterial({color:new THREE.Color(1.6,.8,.25),transparent:true,opacity:.85}));stream.visible=false;scene.add(stream);}
+function wineReset(){if(!pot)return;pot.position.set(POT0[0],POT0[1],POT0[2]);pot.rotation.z=0;stream.visible=false;}
+function actWine(){const k=begin('wine');if(k<0)return;const ok=()=>hero.tok===k;run(async()=>{hint('前往供桌……');await GO(hero,k,1.3,-1.42);hero.hT=Math.atan2(-1.3,-.5);tp.cine=cine([2.1,2.45,.7],[.15,1.32,-1.95],34);await WT(hero,k,.6);
+ if(wineCups[0].visible){for(const w of wineCups)w.visible=false;toast('撤下旧酒 · 重新斟满');await WT(hero,k,1);}
+ hero.t.arms=1;const sx=pot.position.x,sy=pot.position.y,sz=pot.position.z;
+ for(let i=0;i<3;i++){const cx=(i-1)*.26,px=pot.position.x,py=pot.position.y,pz=pot.position.z;hint(`斟第${'一二三'[i]}爵……`);
+  await tw(.7,q=>{if(ok())pot.position.set(mix(px,cx+.2,q),mix(py,1.5,q)+Math.sin(q*Math.PI)*.12,mix(pz,-1.9,q));});if(!ok())throw 0;
+  await tw(.35,q=>{if(ok())pot.rotation.z=q*.95;});if(!ok())throw 0;
+  const w=wineCups[i];stream.visible=true;stream.position.set(cx+.045,1.47,-1.9);stream.scale.y=.2;stream.rotation.z=-.22;w.visible=true;play(sPour,1.5);
+  await tw(1.5,q=>{if(!ok())return;w.position.y=mix(.125,.186,q);const s=mix(.45,1,q);w.scale.set(s,s*1.6,1);stream.scale.y=.2+.02*Math.sin(q*40);},q=>q);if(!ok())throw 0;
+  stream.visible=false;await tw(.3,q=>{if(ok())pot.rotation.z=.95*(1-q);});play(sDing,1);await WT(hero,k,.25);}
+ {const px=pot.position.x,py=pot.position.y,pz=pot.position.z;await tw(.7,q=>{if(ok())pot.position.set(mix(px,sx,q),mix(py,sy,q)+Math.sin(q*Math.PI)*.1,mix(pz,sz,q));});}
+ hint('三爵既满 · 举手敬关圣帝君');rite('敬酒','三爵既满 · 敬关圣帝君');play(sQing,523,.6);for(let i=0;i<3;i++){hero.t.bow=.8;await WT(hero,k,.7);hero.t.bow=0;await WT(hero,k,.6);}
+ hero.t.arms=0;st.wine++;toast(`${me.full} 敬酒三爵 · 一敬忠、二敬义、三敬兄弟`,4500);await WT(hero,k,1.2);tp.cine=null;setMode(null);hint();},k);}
+function sClack(B,t,v=1){nburst(B,t,'bandpass',1500,3,.5*v,.03,.25);partial(B,t,620,.12*v,.06,.2);partial(B,t,985,.07*v,.04,0);}
+function sDing(B,t,v=1){partial(B,t,1320,.05*v,.6,.3);partial(B,t,2110,.02*v,.3,.2);}
+function sPour(B,t,dur){const c=B.ctx,s=c.createBufferSource();s.buffer=B.noise;s.loop=true;const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=4;f.frequency.setValueAtTime(650,t);f.frequency.exponentialRampToValueAtTime(1900,t+dur);
+ const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+.08);g.gain.setValueAtTime(.3,t+dur-.15);g.gain.linearRampToValueAtTime(0,t+dur);
+ const l=c.createOscillator();l.frequency.value=23;const lg=c.createGain();lg.gain.value=.1;l.connect(lg);lg.connect(g.gain);s.connect(f);f.connect(g);g.connect(B.out);s.start(t,.3);s.stop(t+dur+.05);l.start(t);l.stop(t+dur+.05);
+ const r=mkR(31);for(let i=0;i<9;i++)partial(B,t+.1+r()*(dur-.3),380+r()*520,.022,.07,.1);}
+// 许愿牌
+const RK={x:-8.6,z:31.2},WKEY='guandi_wishes_v1',WCELL=[3,4,11,12,2,5,10,13,1,6,9,14,0,7,8,15];let myWishes=[],wAtlas=null,wCtx=null,wPlq=[];
+try{const a=JSON.parse(localStorage.getItem(WKEY)||'[]');if(Array.isArray(a))myWishes=a.filter(w=>w&&typeof w.t==='string').map(w=>({t:w.t.slice(0,40),n:String(w.n||'').slice(0,24),d:String(w.d||'').slice(0,12)})).slice(-30);}catch(e){}
+const FAKEW=['愿爸妈身体健康，平平安安','考研上岸！！拜托了关二爷','新店下月开业，求个生意兴隆','和兄弟们合伙的事，顺顺利利','今年一定把驾照考下来','愿奶奶手术顺利，早日出院','官司能赢，还我一个清白','想找一份不用天天加班的工作','保佑我家小子高考超常发挥','出门在外跑车，一路平安','欠的债今年还清，重新开始','做个讲义气的人，不负朋友','祝老班长退伍以后一切都好','生意场上少遇小人，多遇贵人','希望她能回我消息……','戒烟，这次是认真的','愿家里的老猫再陪我几年','异地三年了，明年一定团聚'].map((t,i)=>{
+ const h=k=>Math.floor(hash(i,k,97)*1e6);return{t,n:JUN[h(1)%JUN.length]+XING[h(2)%XING.length]+MING[h(3)%MING.length]+' 字'+ZA[h(4)%ZA.length]+ZB[h(5)%ZB.length],d:''};});
+const rackList=()=>[...myWishes.slice(-6).reverse().map(w=>({...w,me:1})),...FAKEW].slice(0,16);
+function drawPlq(cell,w){const g=wCtx,x=(cell%8)*128,y=Math.floor(cell/8)*256;const gr=g.createLinearGradient(x,y,x+128,y+256);gr.addColorStop(0,'#e2c48a');gr.addColorStop(1,'#c29856');g.fillStyle=gr;g.fillRect(x,y,128,256);
+ g.strokeStyle=w&&w.me?'#c8201a':'#8a6232';g.lineWidth=w&&w.me?8:5;g.strokeRect(x+5,y+5,118,246);g.fillStyle='#3a2410';g.beginPath();g.arc(x+64,y+22,6,0,6.3);g.fill();if(!w)return;
+ g.fillStyle='#4a1408';g.textAlign='center';g.textBaseline='middle';g.font=`28px ${KAI}`;let s=w.t.replace(/\s+/g,'');if(s.length>12)s=s.slice(0,11)+'…';const cols=s.length>6?2:1;
+ for(let i=0;i<s.length;i++){const c=Math.floor(i/6),r=i%6;g.fillText(s[i],x+(cols===2?(c?40:88):64),y+52+r*29);}
+ g.font=`13px ${SONG}`;g.fillStyle='#7a4a20';g.fillText((w.n||'').split(' ')[0].slice(0,8),x+64,y+236);if(w.me){g.fillStyle='#c8201a';g.fillRect(x+100,y+212,18,18);g.fillStyle='#f6e3b4';g.font=`13px ${KAI}`;g.fillText('愿',x+109,y+222);}}
+function redrawRack(){const l=rackList();for(let i=0;i<16;i++)drawPlq(WCELL[i],l[i]);wAtlas.needsUpdate=true;}
+function buildWish(){const Y=scene,red=Lam(0xa83426),wood=Lam(0x6a4024),tile=Lam(0x2c7560,{side:THREE.DoubleSide});
+ const A=(geo,mat,x,y,z,p=Y)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;p.add(m);return m;};
+ for(const s of[-1,1]){A(new THREE.CylinderGeometry(.09,.11,2.4,8),red,RK.x+s*2.2,1.2,RK.z);A(new THREE.CylinderGeometry(.2,.24,.2,8),Lam(0xbdb6a6),RK.x+s*2.2,.1,RK.z);obs(RK.x+s*2.2,RK.z,.3);obs(RK.x+s*1.1,RK.z,.35);}obs(RK.x,RK.z,.35);
+ for(const y of[.98,1.58,2.2])A(new THREE.BoxGeometry(4.6,.07,.07),wood,RK.x,y,RK.z);
+ const rf=ringRoof([[2.75,.6,2.36,.22],[2.4,.06,2.72,0]],null,tile);rf.position.set(RK.x,0,RK.z);scene.add(rf);
+ const[c,g]=cv(1024,512);wCtx=g;wAtlas=tex(c);redrawRack();const pm=new THREE.MeshLambertMaterial({map:wAtlas}),bk=Lam(0xb08a4e),rb=Lam(0xc8201a);
+ for(let cell=0;cell<16;cell++){const cxn=cell%8,cy=Math.floor(cell/8),grp=new THREE.Group();grp.position.set(RK.x-1.75+cxn*.5,cy?.98:1.58,RK.z+.06);scene.add(grp);
+  const pg=new THREE.PlaneGeometry(.3,.5),uv=pg.attributes.uv;for(let i=0;i<4;i++)uv.setXY(i,(cxn+uv.getX(i))/8,1-(cy+1)*.5+uv.getY(i)*.5);
+  A(pg,pm,0,-.31,.02,grp).castShadow=false;A(new THREE.BoxGeometry(.3,.5,.03),bk,0,-.31,0,grp);A(new THREE.BoxGeometry(.015,.08,.015),rb,0,-.03,0,grp);
+  const ph=cell*1.7;anim.push(t=>{grp.rotation.z=Math.sin(t*1.3+ph)*.05;grp.rotation.x=Math.sin(t*.9+ph)*.04;});wPlq[cell]=grp;}
+ for(let i=0;i<6;i++){const a=i*1.05,gp=new THREE.Group();gp.position.set(-6.8+Math.sin(a)*.9,2.0+((i*7)%3)*.12,35.4+Math.cos(a)*.9);gp.rotation.y=a;scene.add(gp);A(new THREE.BoxGeometry(.16,.26,.02),bk,0,-.3,0,gp);A(new THREE.BoxGeometry(.012,.36,.012),rb,0,-.02,0,gp);const ph=i*2.1;anim.push(t=>{gp.rotation.z=Math.sin(t*1.5+ph)*.12;});}
+ $('#wclose').onclick=()=>{$('#wish').classList.remove('show');if(st.mode==='wish'){stopHero();hint();}};
+ $('#wadd').onclick=()=>{const v=$('#win').value.replace(/\s+/g,' ').trim().slice(0,40);if(!v){toast('先写下一句心愿');return;}const d=new Date();myWishes.push({t:v,n:me.str,d:`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`});if(myWishes.length>30)myWishes.shift();
+  let saved=true;try{localStorage.setItem(WKEY,JSON.stringify(myWishes));}catch(e){saved=false;}$('#win').value='';$('#win').blur();redrawRack();$('#wish').classList.remove('show');
+  const k=hero.tok;hero.t.arms=1;hero.t.bow=.5;const gp=wPlq[WCELL[0]];tw(1.2,q=>{gp.scale.setScalar(1+.8*Math.sin(q*Math.PI));},eout);play(sClack,.6);play(sQing,880,.4);rite('许愿','心诚则灵 · 此牌长挂');
+  toast(saved?'许愿牌已挂上 · 存在本机，下次来还在':'许愿牌已挂上（本机无法保存，离开后会消失）',5000);setTimeout(()=>{if(hero.tok===k){stopHero();hint();}},2200);};}
+function wishPanel(){const L_=$('#wlist');L_.textContent='';const mk=(w,idx)=>{const d=document.createElement('div');d.className='wp'+(w.me?' me':'');const p=document.createElement('p');p.textContent=w.t;const i=document.createElement('i');i.textContent=(w.me?'我 · ':'')+w.n+(w.d?' · '+w.d:'');d.append(p,i);
+  if(w.me){const b=document.createElement('b');b.textContent='取下';b.onclick=()=>{myWishes.splice(idx,1);try{localStorage.setItem(WKEY,JSON.stringify(myWishes));}catch(e){}redrawRack();wishPanel();};d.append(b);}L_.append(d);};
+ for(let i=myWishes.length-1;i>=0;i--)mk({...myWishes[i],me:1},i);FAKEW.forEach(w=>mk(w,-1));$('#wish').classList.add('show');}
+function actWish(){const k=begin('wish');if(k<0)return;run(async()=>{hint('前往许愿架……');await GO(hero,k,RK.x,RK.z+1.5);hero.hT=Math.PI;await WT(hero,k,.4);hint('许愿架 · 看看大家的心愿，也写下自己的');wishPanel();},k);}
+function buildExtras(){buildJiao();buildWine();buildWish();}
 
 /* ---------- 假访客 ---------- */
 const rndYard=()=>{for(let i=0;i<40;i++){const x=R(-15.5,15.5),z=R(15.5,47.5);if(!OBS.some(o=>Math.hypot(x-o[0],z-o[1])<o[2]+.9))return[x,z];}return[0,40];};
@@ -1066,7 +1190,7 @@ function bindInput(){
   stopHero();hint();walkTo(hero,x,z,hero.tok);marker.position.set(x,.04,z);marker.material.opacity=.9;marker.scale.setScalar(1);};
  canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
  canvas.addEventListener('wheel',e=>{e.preventDefault();tp.distT=Math.min(16,Math.max(2.6,tp.distT*(1+Math.sign(e.deltaY)*.1)));},{passive:false});
- addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k.length===1&&'wasd'.includes(k)||k.startsWith('arrow')){keys[k]=1;e.preventDefault();}});
+ addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();if(k.length===1&&'wasd'.includes(k)||k.startsWith('arrow')){keys[k]=1;e.preventDefault();}});
  addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});addEventListener('blur',()=>{for(const k in keys)keys[k]=0;});
  addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,200));
  document.addEventListener('visibilitychange',()=>{if(AB){document.hidden?AB.ctx.suspend():AB.ctx.resume();}});
@@ -1090,7 +1214,7 @@ function frame(){requestAnimationFrame(frame);if(document.hidden)return;const dt
  if((fx||fz)&&st.entered&&!st.lock){if(st.mode||hero.path){stopHero();hint();}if(tp.gaze)setGaze(false);const sy=Math.sin(tp.yaw),cy=Math.cos(tp.yaw),l=1/Math.hypot(fx,fz);hero.vx=(-sy*fz+cy*fx)*l;hero.vz=(-cy*fz-sy*fx)*l;}else hero.vx=hero.vz=0;
  for(const c of chars){stepChar(c,dt,t);const d=camera.position.distanceTo(c.g.position);c.label.visible=d<44&&tp.gz<.5;const s=Math.min(2.8,Math.max(.1,d*.085));c.label.scale.set(1.75*s,.35*s,1);c.label.position.y=1.3+.2*s;}
  if(marker.material.opacity>0){marker.material.opacity=Math.max(0,marker.material.opacity-dt*1.3);marker.scale.multiplyScalar(1+dt*.9);}
- refreshCtx();updateCamera(dt,t);
+ jiaoTick(dt);refreshCtx();updateCamera(dt,t);
  const k=tp.k;L.hemi.intensity=mix(1.5,.32,k);L.hemi.color.lerpColors(HS,HI,k);L.hemi.groundColor.lerpColors(GS,GI,k);scene.fog.color.lerpColors(FS,FI,k);scene.fog.density=mix(.0038,.016,k);
  renderer.toneMappingExposure=mix(1.0,.92,k);finalPass.uniforms.vig.value=mix(.28,.6,k);veil.visible=false;
  const sx=Math.round(hero.x/2)*2,sz=Math.round(hero.z/2)*2;L.sun.target.position.set(sx,0,sz);L.sun.position.set(sx+20,41,sz+22.5);
@@ -1105,7 +1229,7 @@ try{
  await setLoad('立柱架梁…');buildEnv();buildHall();await sleep(0);buildProps();
  const _t0=performance.now();await buildStatue();console.log('statue ms',Math.round(performance.now()-_t0));
  let inn=[];scene.traverse(o=>{if(o.isMesh&&o.castShadow)inn.push(o);});
- await setLoad('洒扫庭除…');charGeo();buildYard();interior=inn.filter(o=>!o.userData.out);
+ await setLoad('洒扫庭除…');charGeo();buildYard();interior=inn.filter(o=>!o.userData.out);buildExtras();
  await setLoad('燃灯点烛…');buildLights();buildFX();yardFX();buildPost();
  hero=mkChar(me,true);hero.x=0;hero.z=43.5;hero.h=Math.PI;
  if(qs.get('at')){const a=qs.get('at').split(',').map(Number);hero.x=a[0];hero.z=a[1];}
@@ -1117,7 +1241,7 @@ try{
 $('#load').textContent='山门已开';const eb=$('#enter');eb.disabled=false;
 const enter=()=>{if(st.entered)return;st.entered=true;audioInit();$('#gate').classList.add('gone');document.body.classList.add('in');hint();toast(`${me.ttl} · ${me.str} 入庙`,4200);play(sBell,.45);};
 eb.addEventListener('click',enter);
-window.__t={st,tp,enter,scene,camera,renderer,L,me,fated,statue,tweens,chars,npcs,get hero(){return hero;},actBow,actIncense,actQian,actSalute,actCtx,walkTo,cancel,CU,SPOTS,OBS,QIAN};window.__ready=true;
+window.__t={st,tp,enter,scene,camera,renderer,L,me,fated,statue,tweens,chars,npcs,get hero(){return hero;},actBow,actIncense,actQian,actSalute,actCtx,walkTo,cancel,CU,SPOTS,OBS,QIAN,simJiao,wineCups,get stream(){return stream;},jiao,actJiao,actWine,actWish,get myWishes(){return myWishes;}};window.__ready=true;
 if(qs.has('auto'))enter();
 })();
 </script>
